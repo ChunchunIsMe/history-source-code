@@ -132,6 +132,8 @@ RegExp(pattern, (flags));
 2. 匹配 '#' 所在位置如果 hashIndex 不是 -1 则说明存在 hash 路由，则将 # 之前的字符都赋值给 pathname 将#(包括)之后的赋值给 hash (hash 放在 url 参数之后)
 3. 匹配 '?' 所在位置如果 searchIndex 不是 -1 则说明存在 search 参数，则将 ? 之前的字符都赋值给 pathname 将?(包括)之后的赋值给 search
 4. 返回 {pathname, search, hash} 如果 search 只有 ? 只返回空字符串 hash 只有 # 同
+
+> 注意 String.prototype.indexOf 和 Array.pro
 #### createPath
 这个函数就是用来拼接路由、search、hash成为一个url后返回
 1. 将传入的对象解构赋值为 pathname/search/hash
@@ -140,3 +142,100 @@ RegExp(pattern, (flags));
 4. hash 同 search 只不过是 '#'
 5. 返回path
 ### LocationUtils.js
+1. 首先引入了三个依赖 resolvePathname/valueEqual/parsePath
+2. resolvePathname: 其实就是解析两个字符串路由然后返回跳转后的路由 [resolvePathname](https://www.npmjs.com/package/resolve-pathname 'resolvePathname')
+3. valueEqual: 其实就是判断两个值是否相等的函数 [valueEqual](https://www.npmjs.com/package/value-equal 'valueEqual')
+4. parsePath: PathUtils 文件中导出的函数，用来拆分path的
+
+#### locationsAreEqual
+就是判断传入的两个Location是否相等，如果他们的 pathname/search/hash/key/state都相等则返回 true 否则返回 false
+#### createLocation
+这个函数其实就是用来创建一个新的 location 对象的，如果给了第四个参数 currentLocation 那就是从 currentLocation 跳转到 path 路由生成的 loaction
+
+1. 接收四个参数 path/state/key/currentLocation
+2. 定义一个 location 如果传入的 path 是字符串，则将传入 parsePath 函数中解析并将返回值赋给 location，再将 state 赋值给 location.staet
+3. 如果 path 不是字符串，则将 path 结构赋值到新对象再赋值给location 如果此时 pathname 属性不存在则赋值为 ''，如果 search 属性不存在则赋值 '' 存在则判断是否第一个为 '?' 不是则加上 hash 同 search 并且如果 state 不是 undefined 并且此时 location.state 是 undefined 则将 state 赋值给 location.state
+4. 使用 decodeURI 将 location.pathname 解码
+5. 如果 key 存在则给 location.key 赋值为 key 
+6. 如果 currentLocation 不存在，并且 Boolean(location.pathname) === false 则给 location.name 赋值为 '/'
+7. 如果 currentLocation 存在，那么说明是从 currentLocation 跳转至 path 的，此时如果 Boolean(location.pathname) === false 则给 location.pathname 赋值为 currentLocation.pathname 如果存在且第一个字符不是 '/' 则调用 resolvePathname 并存储路由
+8. 最后返回 location
+
+> 注意：其实最后关于 currentLocation 的判断，如果 currentLocation 存在其实就是需要从 currentLocation 跳转到 传入的 path 的结果，如果传入的 path 是 '/' 开头说明不用管当前页面直接全部替换，如果不是则是替换最后 '/' 后面的内容，则要调 resolvePathname
+```
+// resolvePathname
+import resolvePathname from 'resolve-pathname';
+
+resolvePathname('about', '/company/jobs'); // /company/about
+resolvePathname('../jobs', '/company/team/ceo'); // /company/jobs
+resolvePathname('about'); // /about
+resolvePathname('/about'); // /about
+
+resolvePathname('about', '/company/info/'); // /company/info/about
+
+resolvePathname('cto', window.location.pathname); // /company/team/cto
+resolvePathname('../jobs', window.location.pathname); // /company/jobs
+```
+上面是官方的几个例子
+
+decodeURI
+
+函数解码一个由 encodeURI 先前创建的统一资源标识符或类似的例程
+
+语法
+```
+decodeURI(encodedURI)
+```
+参数
+encodedURI 编码过的 URI
+返回值
+未编码的新字符串
+例子
+```
+decodeURI("https://developer.mozilla.org/ru/docs/JavaScript_%D1%88%D0%B5%D0%BB%D0%BB%D1%8B");
+// "https://developer.mozilla.org/ru/docs/JavaScript_шеллы"
+decodeURI('%E4%BD%A0%E5%A5%BD')
+// 你好
+```
+
+encodeURI 其实就是和他相反的东西
+
+### window.location/document.location
+
+通过 window.location/document.location 访问
+
+属性：
+
+1. Location.href: 包含整个URL
+2. Location.protocol: URL协议 如'http://'
+3. Location.host 域名: 可能最后有:+端口号
+4. Location.hostname: 域名
+5. Location.port: 端口号
+6. Location.pathname: URL路径 开头有 '/'
+7. Location.search: URL参数 开头有 '?'
+8. Location.hash: URL块标识符 开头有 '#'
+9. Location.username: URL中域名前的用户名
+10. Location.password: URL中域名前的密码
+11. Location.origin: 页面来源域名的标准形式 '协议+域名+端口'
+
+方法：
+
+1. Location.assign()
+
+参数： url 触发窗口加载并显示指定的URL的内容
+
+2. Location.reload()
+
+参数：forcedReload(可选) 该值为 Boolean 类型当为 true 则强制从服务器取当前资源而不是浏览器缓存
+
+使用来刷新当前页面
+
+3. Location.replace()
+
+参数：url 
+
+以给定的URL来替换当前的资源，和assign不同的是replace不会保存在历史会话中
+
+4. Location.toString()
+
+返回整个 URL 和 href 不同的是不能修改其来进行跳转
