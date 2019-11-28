@@ -92,6 +92,10 @@ String.prototype.substr
 #### hasBasename
 忽略大小写匹配 传入的 path 是否是 prefix 后接 / 或者 # 或者 ? 或者直接结束。匹配到则返回true，否则返回false
 
+注意：
+
+如果是`new Regexp(pattern, flags)`创建的regexp pattern是字符串，如果想要匹配 '/' 要写成 '\\/' 因为 '\' 在字符串中需要先转义，如果是 /\// 这种写法就可以省略一个'\'
+
 RegExp
 
 语法：
@@ -120,4 +124,19 @@ RegExp(pattern, (flags));
 
 >> s: dotAll 模式,匹配任何字符
 
+#### stripBasename
+判断一下传入的path最后一个字符是否是 '/' 如果是则切割字符串返回去除最后一个字符的字符串，如果不是则直接返回path
+#### parsePath
+这个函数用来分割 路由 hash路由 查询参数的
+1. 创建 pathname 并赋值传入的 path 如果 path 是空则赋值 '/',创建 search、hash 赋值空字符串
+2. 匹配 '#' 所在位置如果 hashIndex 不是 -1 则说明存在 hash 路由，则将 # 之前的字符都赋值给 pathname 将#(包括)之后的赋值给 hash (hash 放在 url 参数之后)
+3. 匹配 '?' 所在位置如果 searchIndex 不是 -1 则说明存在 search 参数，则将 ? 之前的字符都赋值给 pathname 将?(包括)之后的赋值给 search
+4. 返回 {pathname, search, hash} 如果 search 只有 ? 只返回空字符串 hash 只有 # 同
+#### createPath
+这个函数就是用来拼接路由、search、hash成为一个url后返回
+1. 将传入的对象解构赋值为 pathname/search/hash
+2. 如果 Boolean(pathname) 为 false 则给 path 赋值为 '/' 否则为 pathname
+3. search 存在且只不是 '?' 判断 search 第一个字符是否是 '?' 是则拼接 path 不是则拼接 '?' 再拼接 search
+4. hash 同 search 只不过是 '#'
+5. 返回path
 ### LocationUtils.js
