@@ -90,6 +90,7 @@ String.prototype.substr
 > length(可选): 提取的字符数，如果是负值或0则返回空字符串，如果忽略，则提取字符直到字符串末尾。
 
 #### hasBasename
+
 忽略大小写匹配 传入的 path 是否是 prefix 后接 / 或者 # 或者 ? 或者直接结束。匹配到则返回true，否则返回false
 
 注意：
@@ -125,6 +126,8 @@ RegExp(pattern, (flags));
 >> s: dotAll 模式,匹配任何字符
 
 #### stripBasename
+调用 hasBasename 检测是否是正确 正确只截取?|#|$后面的字符，不正确直接返回path
+#### stripTrailingSlash
 判断一下传入的path最后一个字符是否是 '/' 如果是则切割字符串返回去除最后一个字符的字符串，如果不是则直接返回path
 #### parsePath
 这个函数用来分割 路由 hash路由 查询参数的
