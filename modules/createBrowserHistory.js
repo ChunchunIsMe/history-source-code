@@ -82,6 +82,7 @@ function createBrowserHistory(props = {}) {
 
   function setState(nextState) {
     Object.assign(history, nextState);
+    debugger;
     history.length = globalHistory.length;
     debugger;
     transitionManager.notifyListeners(history.location, history.action);

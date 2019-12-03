@@ -1,2 +1,3 @@
 import createBrowserHistory from '../../modules/createBrowserHistory';
-console.log(createBrowserHistory);
+var location = createBrowserHistory();
+location.setState();
